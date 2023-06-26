@@ -70,7 +70,7 @@ export default function Header({options, HeadRef, functions}) {
     }
 
     let header = options.length !== 0 && options.map(option=>{
-        return <>{optionsList[option]} <hr></hr></>
+        return <React.Fragment key={Math.random()}>{optionsList[option]} <hr></hr></React.Fragment>
     })
 
     const Top = ()=>{

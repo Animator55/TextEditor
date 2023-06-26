@@ -152,7 +152,7 @@ body {
     border-radius: 5px;
 }
 
-.text-editor:empty::before {
+.text-editor p:first-child:last-child:empty::before {
     content: "Write here";
     opacity: 0.5;
     pointer-events: none;
