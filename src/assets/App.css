@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+
+* {
+    margin: 0;
+    user-select: none;
+    font-family: 'Lato', sans-serif;
+}
+
+[contenteditable=true] {
+    user-select: all;
+}
+
+[contenteditable=true]:focus, .header section select:focus {
+    outline: none;
+}
+
+button, select {
+    background-color: #161822;
+    border-radius: 5px;
+    border: none;
+    color: #ffffff;
+}
+
+.select::-ms-expand {
+    background-color: #6b84ff;
+}
+
+button:hover {
+    background-color: #ffffff;
+    color: #161822;
+    cursor: pointer;
+}
+
+body {
+    margin: 0;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    background-color: #b4b8c1;
+}
+
+#root, .main {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.disabled {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    background-color: #122661;
+    border-bottom: 1px solid #ffffff;
+}
+
+.header nav {
+    display: flex;
+    background-color: #161822;
+    color: #ffffff;
+    align-items: center;
+    padding-left: 1rem;
+}
+.header nav p {
+    opacity: 0.7;
+    font-size: small;
+}
+.header nav button {
+    height: 2rem;
+    padding: 0 0.5rem;
+    border-radius: 0;
+}
+.header nav button:nth-child(2) {
+    margin-left: auto;
+}
+
+.header:has(+ .showing) section > * {
+    opacity: 0.4;
+    pointer-events: none;
+}
+.header:has(+ .showing) nav button:nth-child(2) {
+    background-color: #ffffff;
+    color: #161822;
+}
+
+.header section {
+    padding: 0.5rem;
+    display: flex;
+}
+
+.header section button, .header section select {
+    width: 2rem;
+    height: 2rem;
+    margin: 0.1rem;
+}
+
+.header section select {
+    width: 4rem;
+} 
+
+.header section ul {    
+    background-color: #161822;
+    border-radius: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    overflow-y: scroll;
+    height: 4.4rem;
+    width: 9.2rem;
+    padding: 0.1rem;
+    margin: 0.1rem;
+}
+
+.header section div {
+    display: flex;
+}
+
+.header section > hr {
+    border: 1px solid white;
+    opacity: 0.4;
+    margin: 0 0.5rem;
+}
+
+.header section ul::-webkit-scrollbar {
+    border-radius: 5px;
+    width: 0.4rem;
+}
+.header section ul::-webkit-scrollbar-thumb {
+    background-color: #ffffff;
+    border-radius: 5px;
+}
+
+.text-editor {
+    margin: 2rem;
+    padding: 1rem 1.5rem;
+    background-color: #ffffff;
+    height: 100%;
+    overflow-y: scroll;
+    position: relative;
+    border-radius: 2px;
+}
+
+.text-editor::-webkit-scrollbar {
+    border-radius: 5px;
+    width: 5px;
+}
+.text-editor::-webkit-scrollbar-thumb {
+    background-color: #161822;
+    border-radius: 5px;
+}
+
+.text-editor:empty::before {
+    content: "Write here";
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.text-editor::after {
+    content: attr(data-count);
+    pointer-events: none;
+    position: fixed;
+    bottom: 3rem;
+    right: 3rem;
+    background-color: #b4b8c1;
+    border-radius: 5px;
+    padding: 0.5rem;
+}
