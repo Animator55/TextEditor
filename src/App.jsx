@@ -29,7 +29,8 @@ const regexText = (str, bool)=>{
 
 export default function App() {
   const [paragraphList, setParagraphList] = React.useState([
-    {id: "0", text: ""},
+    {id: "0", text: "Text 1"},
+    {id: "1", text: "Text 2 ds"},
   ])
   const HeadRef = React.useRef()
   const TextRef = React.useRef()
@@ -50,11 +51,39 @@ export default function App() {
     return index
   }
 
-  const focus = (id)=>{
+  const focus = (id, index)=>{
     let idLocal = id === undefined ? TextRef.selected : id
-    let index = getSelectedIndex(idLocal)
+    let nodeIndex = getSelectedIndex(idLocal)
     
-    TextRef.current?.childNodes[index]?.focus()
+    TextRef.current?.childNodes[nodeIndex]?.focus()
+
+    if(index === undefined && TextRef.selectedIndex === undefined) return
+    
+    var range = document.createRange()
+    let selection = setSelection()
+    let selIndex = index !== undefined ? index : TextRef.selectedIndex
+    let maxIndex = TextRef.current?.childNodes[nodeIndex].innerText.length
+
+    TextRef.selectedIndex = undefined
+
+    selIndex = selIndex > maxIndex ? maxIndex : selIndex
+    
+    range.setStart(TextRef.current?.childNodes[nodeIndex].childNodes[0], selIndex)
+    range.collapse(true)
+    
+    selection.removeAllRanges()
+    selection.addRange(range)
+  }
+  
+  const addUndo = () => {
+    if (TextRef.current.innerHTML === TextRef.undo[TextRef.undo.length-1]) return null
+    TextRef.redo = []
+    toggleHistory(1, true)
+    TextRef.undo.push(TextRef.current.innerHTML)
+    toggleHistory(0, false)
+    if (TextRef.undo.length > 10) TextRef.undo.shift()
+
+    resetCount()
   }
 
   const saveParagraph = ()=>{
@@ -81,7 +110,6 @@ export default function App() {
     let index = parseInt(e.target.dataset.index)
     let selection = setSelection()
     addUndo()
-    console.log(index)
     let allText = TextRef.current.childNodes[index].innerText
     let a = allText.slice(0, selection.baseOffset)
     let b = allText.slice(selection.extentOffset)
@@ -95,7 +123,6 @@ export default function App() {
     //create new line
     let id = Math.random()
     list.splice(index+1, 0, {id: id, text: b})
-    console.log(list)
     //select
     TextRef.selected = id
     //refresh
@@ -107,13 +134,28 @@ export default function App() {
       let index = parseInt(e.target.dataset.index)
       let selection = setSelection()
       if(selection.baseOffset === selection.extentOffset && selection.baseOffset === 0){
+        e.preventDefault()
         let list = [...paragraphList]
         list[index-1].text += e.target.innerText
         list.splice(index, 1)
         setParagraphList(list)
-        focus(paragraphList[index -1].id)
+
+        TextRef.selected = paragraphList[index -1].id
+        TextRef.selectedIndex = e.target.previousSibling?.innerText?.length
       }
     }
+  }
+
+  const moveToLine = (e, direction)=>{
+    e.preventDefault()
+    let selection = setSelection()
+
+    let index = parseInt(e.target.dataset.index) + direction
+    if(index < 0) index = 0
+    else if(index > paragraphList.length -1) index = paragraphList.length -1
+    let idToSelect = paragraphList[index].id
+
+    focus(idToSelect, selection.anchorOffset)
   }
 
   const select = (id)=>{
@@ -134,8 +176,9 @@ export default function App() {
     let splited = regex.split("|")
 
     for(let i=0; i<paragraphList.length; i++) {
-      TextRef.current.childNodes[i].innerText = splited[i]
-      paragraphList[i].text = splited[i]
+      let str = splited[i] === undefined ? "" : splited[i]
+      TextRef.current.childNodes[i].innerText = str
+      paragraphList[i].text = str
     }
     TextRef.undo.pop()
 
@@ -262,20 +305,11 @@ export default function App() {
     else addUndo()
   }
 
-  const addUndo = () => {
-    if (TextRef.current.innerHTML === TextRef.undo[TextRef.undo.length-1]) return null
-    TextRef.redo = []
-    toggleHistory(1, true)
-    TextRef.undo.push(TextRef.current.innerHTML)
-    toggleHistory(0, false)
-    if (TextRef.undo.length > 10) TextRef.undo.shift()
-
-    resetCount()
-  }
-
   const checkPrevents = e => {
     if ((e.ctrlKey && (e.key === "z" || e.key === "y"))|| e.key === "Enter") e.preventDefault()
     if (e.key === "Backspace") DeleteLine(e)
+    else if(e.key === "ArrowUp") moveToLine(e, -1)
+    else if(e.key === "ArrowDown") moveToLine(e, 1)
   }
 
   React.useEffect(() => {
@@ -286,6 +320,7 @@ export default function App() {
 
   React.useEffect(()=>{
     focus()
+    if(TextRef.undo.length !== 0) toggleHistory(0, false)
   }, [paragraphList])
 
   const optionsFunctions = {
