@@ -3,7 +3,7 @@ import './assets/App.css'
 import Header from './components/Header'
 
 let defaultText = ""
-let defaultOptions = ["history", "div1", "div2", "div3", "icon", "clean"]
+let defaultOptions = ["history", "div1", "div2", "div3", "div4", "icon", "clean"]
 
 const clean =(str)=>{
   str.replace(/\*\*/g, "")
@@ -18,19 +18,19 @@ const clean =(str)=>{
 const regexText = (str, bool)=>{
   let newStr = ""
   if(!bool) newStr = clean(str)
-  newStr = str !== undefined ? !bool ? str.replace(/\*(.*?)\*/g, "<b>$1</b>") : str.replace(/(<b>|<\/b>)/g, "*") : ""
-  newStr = !bool ? newStr.replace(/(?<!\<)\/(.*?)(?<!\<)\//g, "<i>$1</i>") : newStr.replace(/(<i>|<\/i>)/g, "/") 
-  newStr = !bool ? newStr.replace(/\_(.*?)\_/g, "<ins>$1</ins>") : newStr.replace(/(<ins>|<\/ins>)/g, "_")
-  newStr = !bool ? newStr.replace(/\~(.*?)\~/g, "<s>$1</s>") : newStr.replace(/(<s>|<\/s>)/g, "~")
-  newStr = !bool ? newStr.replace(/\^(.*?)\^/g, "<sup>$1</sup>") : newStr.replace(/(<sup>|<\/sup>)/g, "^")
-  newStr = !bool ? newStr.replace(/\´(.*?)\´/g, "<sub>$1</sub>") : newStr.replace(/(<sub>|<\/sub>)/g, "´")
+  newStr = str !== undefined ? !bool ? str.replace(/\*(.*?)\*/g, "*<b>$1</b>*") : str.replace(/(\*<b>|<\/b>\*)/g, "*") : ""
+  newStr = !bool ? newStr.replace(/(?<!\<)\/(.*?)(?<!\<)\//g, "/<i>$1</i>/") : newStr.replace(/(\/<i>|<\/i>\/)/g, "/") 
+  newStr = !bool ? newStr.replace(/\_(.*?)\_/g, "_<ins>$1</ins>_") : newStr.replace(/(_<ins>|<\/ins>_)/g, "_")
+  newStr = !bool ? newStr.replace(/\~(.*?)\~/g, "~<s>$1</s>~") : newStr.replace(/(~<s>|<\/s>~)/g, "~")
+  newStr = !bool ? newStr.replace(/\^(.*?)\^/g, "^<sup>$1</sup>^") : newStr.replace(/(^<sup>|<\/sup>^)/g, "^")
+  newStr = !bool ? newStr.replace(/\´(.*?)\´/g, "´<sub>$1</sub>´") : newStr.replace(/(´<sub>|<\/sub>´)/g, "´")
   return newStr
 }
 
 export default function App() {
   const [paragraphList, setParagraphList] = React.useState([
-    {id: "0", text: "Text 1"},
-    {id: "1", text: "Text 2 ds"},
+    {id: "0", text: "Text 1", style: {fontSize: "18px", textAlign: "left"}},
+    {id: "1", text: "Text 2 ds", style: {fontSize: "20px", textAlign: "left"}},
   ])
   const HeadRef = React.useRef()
   const TextRef = React.useRef()
@@ -79,7 +79,9 @@ export default function App() {
     if (TextRef.current.innerHTML === TextRef.undo[TextRef.undo.length-1]) return null
     TextRef.redo = []
     toggleHistory(1, true)
-    TextRef.undo.push(TextRef.current.innerHTML)
+    let selection = setSelection()
+
+    TextRef.undo.push({text: TextRef.current.innerHTML, selection: {id: TextRef.selected, index: selection.anchorOffset}})
     toggleHistory(0, false)
     if (TextRef.undo.length > 10) TextRef.undo.shift()
 
@@ -89,7 +91,13 @@ export default function App() {
   const saveParagraph = ()=>{
     if(TextRef.selected === undefined) return paragraphList
     let index = getSelectedIndex(TextRef.selected)
-    paragraphList.splice(index, 1, {id: TextRef.selected, text: TextRef.current.childNodes[index].innerText})
+    paragraphList.splice(index, 1, {
+      id: TextRef.selected, 
+      text: TextRef.current.childNodes[index].innerText, 
+      style: {
+        fontSize: TextRef.current.childNodes[index].style.fontSize,
+        textAlign: TextRef.current.childNodes[index].style.textAlign,
+      }})
 
     return paragraphList
   }
@@ -122,7 +130,10 @@ export default function App() {
 
     //create new line
     let id = Math.random()
-    list.splice(index+1, 0, {id: id, text: b})
+    list.splice(index+1, 0, {id: id, text: b, style: {
+      fontSize: TextRef.current.childNodes[index].style.fontSize,
+      textAlign: TextRef.current.childNodes[index].style.textAlign,
+    }})
     //select
     TextRef.selected = id
     //refresh
@@ -161,6 +172,8 @@ export default function App() {
   const select = (id)=>{
     saveParagraph()
     TextRef.selected = id
+    let index = getSelectedIndex(id)
+    HeadRef.current.lastChild.children[4].firstChild.value = TextRef.current.childNodes[index].style.fontSize
   }
 
 
@@ -171,7 +184,9 @@ export default function App() {
     toggleHistory(1, false)
 
     TextRef.redo.push(TextRef.undo[TextRef.undo.length - 1])
-    let text = TextRef.undo[TextRef.undo.length - 1]
+    let text = TextRef.undo[TextRef.undo.length - 1].text
+    let selection = TextRef.undo[TextRef.undo.length - 1].selection
+
     let regex = text.replace(/<p(.*?)>(.*?)<\/p>/g, "$2|")
     let splited = regex.split("|")
 
@@ -186,7 +201,7 @@ export default function App() {
     else if (TextRef.redo.length > 10) TextRef.redo.shift()
 
     resetCount()
-    focus()
+    focus(selection.id, selection.index)
   }
   const redo = (e) => {
     e.preventDefault()
@@ -195,7 +210,8 @@ export default function App() {
     toggleHistory(0, false)
 
     TextRef.undo.push(TextRef.redo[TextRef.redo.length - 1])
-    let text = TextRef.redo[TextRef.redo.length - 1]
+    let text = TextRef.redo[TextRef.redo.length - 1].text
+    let selection = TextRef.redo[TextRef.redo.length - 1].selection
     let regex = text.replace(/<p(.*?)>(.*?)<\/p>/g, "$2|")
     let splited = regex.split("|")
 
@@ -209,7 +225,7 @@ export default function App() {
     if (TextRef.redo.length === 0) return toggleHistory(1, true)
 
     resetCount()
-    focus()
+    focus(selection.id, selection.index)
   }
 
 
@@ -333,10 +349,19 @@ export default function App() {
     sup: () => { addTags("^") },
     sub: () => { addTags("´") },
     icon: (icon) => { addIcon(icon) },
-    size: (size)=>{TextRef.current.style.fontSize = size + px},
+    size: (size)=>{
+      let index = getSelectedIndex(TextRef.selected)
+      TextRef.current.childNodes[index].style.fontSize = size
+      saveParagraph()
+    },
     upper: switchUpperCase,
+    align: (position)=>{
+      let index = getSelectedIndex(TextRef.selected)
+      TextRef.current.childNodes[index].style.textAlign = position
+      saveParagraph()
+    },
     new: ()=>{
-      setParagraphList([{id: "0", text: ""}])
+      setParagraphList([{id: "0", text: "", style: {fontSize: "15px", textAlign: "left"}}])
       TextRef.undo = []
       TextRef.redo = []
       toggleHistory(0, true)
@@ -363,6 +388,7 @@ export default function App() {
     >
       {paragraphList.map((p, i)=>{
         return <p 
+          style={p.style}
           data-index={i}
           key={Math.random()}
           onClick={()=>{if(p.id !== TextRef.selected)select(p.id)}}

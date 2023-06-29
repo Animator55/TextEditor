@@ -1,10 +1,10 @@
-import { faArrowRotateLeft, faArrowRotateRight, faBold, faEye, faGear, faItalic, faStrikethrough, faSubscript, faSuperscript, faTextSlash, faTrash, faUnderline, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faAlignCenter, faAlignLeft, faAlignRight, faArrowRotateLeft, faArrowRotateRight, faBold, faEye, faGear, faItalic, faStrikethrough, faSubscript, faSuperscript, faTextSlash, faTrash, faUnderline, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React from 'react'
 
 export default function Header({options, HeadRef, functions}) {
     const emojisArray = ["😀", "😁", "😂","🤣","😃","😄","😅","😆","😉","😊","😋","😎","😍","😘","🥰","😗"]
-    let fontSizes = [8,9,10,11,12,14,16,18,20,22,24,26,28,36,48]
+    let fontSizes = ["8px","9px","10px","11px","12px","14px","16px","18px","20px","22px","24px","26px","28px","36px","48px"]
 
     const optionsList = {
         history: <div key={Math.random()}>
@@ -38,19 +38,23 @@ export default function Header({options, HeadRef, functions}) {
             ><FontAwesomeIcon icon={faStrikethrough}/></button>
         </div>,
         div2: <div key={Math.random()}>
-            <select title='Font Size'>
+            <select title='Font Size' onChange={(e)=>{functions.size(e.target.value)}}>
                 {fontSizes.map(size=>{
                     return <option
                         key={Math.random()} 
-                        onClick={()=>{functions.size(size)}}  
                         style={{fontSize: size}}
-                    >{size+ "px"}</option>
+                    >{size}</option>
                 })}
             </select>
             <button title='Toggle Uppercase/Lowercase' onClick={functions.upper}  
             >Aa</button>
         </div>,
-        div3: <div className='d-flex-col' key={Math.random()}>
+        div3: <div key={Math.random()}>
+            <button onClick={()=>{functions.align("left")}} title='Align Left'><FontAwesomeIcon icon={faAlignLeft}/></button>
+            <button onClick={()=>{functions.align("center")}} title='Align Center'><FontAwesomeIcon icon={faAlignCenter}/></button>
+            <button onClick={()=>{functions.align("right")}} title='Align Right'><FontAwesomeIcon icon={faAlignRight}/></button>
+        </div>,
+        div4: <div className='d-flex-col' key={Math.random()}>
             <button onClick={functions.sup} title='Superscript'><FontAwesomeIcon icon={faSuperscript}/></button>
             <button onClick={functions.sub} title='Subscript'><FontAwesomeIcon icon={faSubscript}/></button>
         </div>,
