@@ -35,6 +35,15 @@ export default function App() {
   const HeadRef = React.useRef()
   const TextRef = React.useRef()
 
+  const HTMLTag = {
+    "*": ["<b>", "</b>"], 
+    "/": ["<i>", "</i>"], 
+    "_": ["<ins>", "</ins>"], 
+    "~": ["<s>", "</s>"], 
+    "^": ["<sup>", "</sup>"], 
+    "´": ["<sub>", "</sub>"], 
+  }
+
   const resetCount = (value)=>{
     TextRef.current.dataset.count = `${value!==undefined?value:TextRef.current.innerText.length} / 1000`
   }
@@ -122,7 +131,7 @@ export default function App() {
     let a = allText.slice(0, selection.baseOffset)
     let b = allText.slice(selection.extentOffset)
     
-    TextRef.current.childNodes[index].innerText = a
+    TextRef.current.childNodes[index].innerHTML = regexText(a)
     
     //saves new text
     let oldList = saveParagraph()
@@ -191,8 +200,8 @@ export default function App() {
     let splited = regex.split("|")
 
     for(let i=0; i<paragraphList.length; i++) {
-      let str = splited[i] === undefined ? "" : splited[i]
-      TextRef.current.childNodes[i].innerText = str
+      let str = splited[i] === undefined ? "" : regexText(splited[i])
+      TextRef.current.childNodes[i].innerHTML = str
       paragraphList[i].text = str
     }
     TextRef.undo.pop()
@@ -216,7 +225,7 @@ export default function App() {
     let splited = regex.split("|")
 
     for(let i=0; i<paragraphList.length; i++) {
-      TextRef.current.childNodes[i].innerText = splited[i]
+      TextRef.current.childNodes[i].innerHTML = regexText(splited[i])
       paragraphList[i].text = splited[i]
     }
     TextRef.redo.pop()
@@ -243,7 +252,7 @@ export default function App() {
     let a = fullSelect ? "": allText.slice(0, lower)
     let b = fullSelect ? "": allText.slice(upper)
 
-    TextRef.current.childNodes[index].innerText = a + (Tag + selectedText + Tag) + b
+    TextRef.current.childNodes[index].innerHTML = regexText(a + (Tag + selectedText + Tag) + b, false)
     addUndo()
     
     resetCount()
@@ -258,7 +267,7 @@ export default function App() {
     undefined
     : selection.baseNode.data.slice(selection.baseOffset, selection.extentOffset)
     
-    TextRef.current.childNodes[index].innerText = selectedText !== undefined ? allText.replace(selectedText, icon) : allText.slice(0, selection.baseOffset) + icon + allText.slice(selection.baseOffset)
+    TextRef.current.childNodes[index].innerHTML = regexText(selectedText !== undefined ? allText.replace(selectedText, icon) : allText.slice(0, selection.baseOffset) + icon + allText.slice(selection.baseOffset))
     addUndo()
 
     resetCount()
@@ -286,7 +295,7 @@ export default function App() {
       }
     }
 
-    TextRef.current.childNodes[index].innerText = allText.replace(selectedText, newStr)
+    TextRef.current.childNodes[index].innerHTML = regexText(allText.replace(selectedText, newStr))
 
     resetCount()
     focus()
