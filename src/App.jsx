@@ -2,22 +2,11 @@ import React from 'react'
 import './assets/App.css'
 import Header from './components/Header'
 
-let defaultText = ""
 let defaultOptions = ["history", "div1", "div2", "div3", "div4", "icon", "clean"]
 
-const clean =(str)=>{
-  str.replace(/\*\*/g, "")
-  str.replace(/\_\_/g, "")
-  str.replace(/\/\//g, "")
-  str.replace(/\~\~/g, "")
-  str.replace(/\^\^/g, "")
-  str.replace(/\´\´/g, "")
-  return str
-}
 
 const regexText = (str, bool)=>{
   let newStr = ""
-  if(!bool) newStr = clean(str)
   newStr = str !== undefined ? !bool ? str.replace(/\*(.*?)\*/g, "*<b>$1</b>*") : str.replace(/(\*<b>|<\/b>\*)/g, "*") : ""
   newStr = !bool ? newStr.replace(/(?<!\<)\/(.*?)(?<!\<)\//g, "/<i>$1</i>/") : newStr.replace(/(\/<i>|<\/i>\/)/g, "/") 
   newStr = !bool ? newStr.replace(/\_(.*?)\_/g, "_<ins>$1</ins>_") : newStr.replace(/(_<ins>|<\/ins>_)/g, "_")
@@ -29,21 +18,12 @@ const regexText = (str, bool)=>{
 
 export default function App() {
   const [paragraphList, setParagraphList] = React.useState([
-    {id: "0", text: "Text 1", style: {fontSize: "18px", textAlign: "left"}},
-    {id: "1", text: "Text 2 ds", style: {fontSize: "20px", textAlign: "left"}},
+    {id: "0", text: "Text 1", style: {fontSize: "18px", textAlign: "left", backgroundColor: "transparent", color: "black"}},
+    {id: "1", text: "Text 2 ds", style: {fontSize: "20px", textAlign: "left", backgroundColor: "transparent", color: "black"}},
   ])
   const HeadRef = React.useRef()
   const TextRef = React.useRef()
-
-  const HTMLTag = {
-    "*": ["<b>", "</b>"], 
-    "/": ["<i>", "</i>"], 
-    "_": ["<ins>", "</ins>"], 
-    "~": ["<s>", "</s>"], 
-    "^": ["<sup>", "</sup>"], 
-    "´": ["<sub>", "</sub>"], 
-  }
-
+  
   const resetCount = (value)=>{
     TextRef.current.dataset.count = `${value!==undefined?value:TextRef.current.innerText.length} / 1000`
   }
@@ -85,14 +65,15 @@ export default function App() {
   }
   
   const addUndo = () => {
-    if (TextRef.current.innerHTML === TextRef.undo[TextRef.undo.length-1]) return null
+    if (TextRef.current.innerHTML === TextRef.undo[TextRef.undo.length-1]?.text) return null
+    console.log("added")
     TextRef.redo = []
     toggleHistory(1, true)
     let selection = setSelection()
 
     TextRef.undo.push({text: TextRef.current.innerHTML, selection: {id: TextRef.selected, index: selection.anchorOffset}})
     toggleHistory(0, false)
-    if (TextRef.undo.length > 10) TextRef.undo.shift()
+    // if (TextRef.undo.length > 10) TextRef.undo.shift()
 
     resetCount()
   }
@@ -106,6 +87,8 @@ export default function App() {
       style: {
         fontSize: TextRef.current.childNodes[index].style.fontSize,
         textAlign: TextRef.current.childNodes[index].style.textAlign,
+        backgroundColor: TextRef.current.childNodes[index].style.backgroundColor,
+        color: TextRef.current.childNodes[index].style.color,
       }})
 
     return paragraphList
@@ -142,6 +125,8 @@ export default function App() {
     list.splice(index+1, 0, {id: id, text: b, style: {
       fontSize: TextRef.current.childNodes[index].style.fontSize,
       textAlign: TextRef.current.childNodes[index].style.textAlign,
+      backgroundColor: TextRef.current.childNodes[index].style.backgroundColor,
+      color: TextRef.current.childNodes[index].style.color,
     }})
     //select
     TextRef.selected = id
@@ -155,6 +140,7 @@ export default function App() {
       let selection = setSelection()
       if(selection.baseOffset === selection.extentOffset && selection.baseOffset === 0){
         e.preventDefault()
+        addUndo()
         let list = [...paragraphList]
         list[index-1].text += e.target.innerText
         list.splice(index, 1)
@@ -240,20 +226,18 @@ export default function App() {
 
   const addTags = (Tag) => {
     let selection = setSelection()
+    if(selection.baseNode === selection.extentNode && selection.extentOffset === selection.baseOffset) return
     let index = getSelectedIndex(TextRef.selected)
-    let allText = TextRef?.current?.childNodes[index]?.innerText
-
-    let fullSelect = selection.baseOffset === selection.extentOffset
-
-    let [lower, upper] = selection.baseOffset < selection.extentOffset ? [selection.baseOffset, selection.extentOffset] : [selection.extentOffset, selection.baseOffset]
-    let selectedText = fullSelect ? allText
-      : selection.baseNode.data.slice(lower, upper)
-      
-    let a = fullSelect ? "": allText.slice(0, lower)
-    let b = fullSelect ? "": allText.slice(upper)
-
-    TextRef.current.childNodes[index].innerHTML = regexText(a + (Tag + selectedText + Tag) + b, false)
     addUndo()
+
+    let [lower, upper] = [selection.baseOffset, selection.extentOffset]
+
+    let dif = lower < upper ? 1 : 0
+
+    selection.baseNode.data = selection.baseNode.data.slice(0, lower) + Tag + selection.baseNode.data.slice(lower)
+    selection.extentNode.data = selection.extentNode.data.slice(0, upper+dif) + Tag + selection.extentNode.data.slice(upper+dif)
+
+    TextRef.current.childNodes[index].innerHTML = regexText(TextRef?.current?.childNodes[index]?.innerText, false)
     
     resetCount()
     focus()
@@ -261,6 +245,7 @@ export default function App() {
   const addIcon = (icon) => {
     let selection = setSelection()
     let index = getSelectedIndex(TextRef.selected)
+    addUndo()
     let allText = TextRef?.current?.childNodes[index]?.innerText
     
     let selectedText = selection.baseOffset === selection.extentOffset ?
@@ -268,7 +253,6 @@ export default function App() {
     : selection.baseNode.data.slice(selection.baseOffset, selection.extentOffset)
     
     TextRef.current.childNodes[index].innerHTML = regexText(selectedText !== undefined ? allText.replace(selectedText, icon) : allText.slice(0, selection.baseOffset) + icon + allText.slice(selection.baseOffset))
-    addUndo()
 
     resetCount()
     focus()
@@ -278,6 +262,7 @@ export default function App() {
     let selection = setSelection()
     let index = getSelectedIndex(TextRef.selected)
     let allText = TextRef?.current?.childNodes[index]?.innerText
+    addUndo()
 
     let selectedText = selection.baseOffset === selection.extentOffset ?
       allText
@@ -327,14 +312,14 @@ export default function App() {
     else if (e.key === "g" && e.ctrlKey) addTags("´")
     else if (e.key === "Enter") Enter(e)
     else if (e.key === "Control") return
-    else addUndo()
   }
 
   const checkPrevents = e => {
     if ((e.ctrlKey && (e.key === "z" || e.key === "y"))|| e.key === "Enter") e.preventDefault()
-    if (e.key === "Backspace") DeleteLine(e)
+    else if (e.key === "Backspace") DeleteLine(e)
     else if(e.key === "ArrowUp") moveToLine(e, -1)
     else if(e.key === "ArrowDown") moveToLine(e, 1)
+    else if (!e.ctrlKey && !e.shiftKey) addUndo()
   }
 
   React.useEffect(() => {
@@ -369,8 +354,18 @@ export default function App() {
       TextRef.current.childNodes[index].style.textAlign = position
       saveParagraph()
     },
+    background: (color)=>{
+      let index = getSelectedIndex(TextRef.selected)
+      TextRef.current.childNodes[index].style.backgroundColor = color
+      saveParagraph()
+    },
+    color: (color)=>{
+      let index = getSelectedIndex(TextRef.selected)
+      TextRef.current.childNodes[index].style.color = color
+      saveParagraph()
+    },
     new: ()=>{
-      setParagraphList([{id: "0", text: "", style: {fontSize: "15px", textAlign: "left"}}])
+      setParagraphList([{id: "0", text: "", style: {fontSize: "15px", textAlign: "left", backgroundColor: "transparent", color: "black"}}])
       TextRef.undo = []
       TextRef.redo = []
       toggleHistory(0, true)

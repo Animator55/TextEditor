@@ -19,7 +19,7 @@ export default function Header({options, HeadRef, functions}) {
                 title='Redo'
             ><FontAwesomeIcon icon={faArrowRotateRight}/></button>
         </div>,
-        div1: <div key={Math.random()}>
+        div1: <div className='d-flex-col' key={Math.random()}>
             <button
                 onClick={functions.bold}  
                 title='Bold'
@@ -36,6 +36,8 @@ export default function Header({options, HeadRef, functions}) {
                 onClick={functions.midline}  
                 title='Line Through'
             ><FontAwesomeIcon icon={faStrikethrough}/></button>
+            <button onClick={functions.sup} title='Superscript'><FontAwesomeIcon icon={faSuperscript}/></button>
+            <button onClick={functions.sub} title='Subscript'><FontAwesomeIcon icon={faSubscript}/></button>
         </div>,
         div2: <div key={Math.random()}>
             <select title='Font Size' onChange={(e)=>{functions.size(e.target.value)}}>
@@ -55,8 +57,12 @@ export default function Header({options, HeadRef, functions}) {
             <button onClick={()=>{functions.align("right")}} title='Align Right'><FontAwesomeIcon icon={faAlignRight}/></button>
         </div>,
         div4: <div className='d-flex-col' key={Math.random()}>
-            <button onClick={functions.sup} title='Superscript'><FontAwesomeIcon icon={faSuperscript}/></button>
-            <button onClick={functions.sub} title='Subscript'><FontAwesomeIcon icon={faSubscript}/></button>
+            <label className='color-input' title='Color'>
+                <p style={{marginTop: 3}}>A</p><input type='color' onChange={(e)=>{functions.color(e.target.value)}}/>
+            </label>
+            <label className='back-input' title='Background Color'>
+                <p>A</p><input type='color' onChange={(e)=>{functions.background(e.target.value)}}/>
+            </label>
         </div>,
         icon: <ul key={Math.random()} >
             {emojisArray.map(emoji=>{
