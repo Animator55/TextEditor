@@ -1,13 +1,16 @@
 import { faAlignCenter, faAlignLeft, faAlignRight, faArrowRotateLeft, faArrowRotateRight, faBold, faEye, faGear, faItalic, faStrikethrough, faSubscript, faSuperscript, faTextSlash, faTrash, faUnderline, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React from 'react'
+import PopUp from './PopUp'
 
-export default function Header({options, HeadRef, functions}) {
+export default function Header({options, setConfig, HeadRef, functions}) {
+    const [popUp, openPop] = React.useState(false)
+
     const emojisArray = ["😀", "😁", "😂","🤣","😃","😄","😅","😆","😉","😊","😋","😎","😍","😘","🥰","😗"]
     let fontSizes = ["8px","9px","10px","11px","12px","14px","16px","18px","20px","22px","24px","26px","28px","36px","48px"]
 
     const optionsList = {
-        history: <div key={Math.random()}>
+        History: <div key={Math.random()}>
             <button
                 className='disabled'
                 onClick={functions.undo} 
@@ -19,7 +22,17 @@ export default function Header({options, HeadRef, functions}) {
                 title='Redo'
             ><FontAwesomeIcon icon={faArrowRotateRight}/></button>
         </div>,
-        div1: <div className='d-flex-col' key={Math.random()}>
+        "Text Formating": <div className='d-flex-col' key={Math.random()}>
+            <select title='Font Size' onChange={(e)=>{functions.size(e.target.value)}}>
+                {fontSizes.map(size=>{
+                    return <option
+                        key={Math.random()} 
+                        style={{fontSize: size}}
+                    >{size}</option>
+                })}
+            </select>
+            <button title='Toggle Uppercase/Lowercase' onClick={functions.upper}  
+            >Aa</button>
             <button
                 onClick={functions.bold}  
                 title='Bold'
@@ -39,24 +52,12 @@ export default function Header({options, HeadRef, functions}) {
             <button onClick={functions.sup} title='Superscript'><FontAwesomeIcon icon={faSuperscript}/></button>
             <button onClick={functions.sub} title='Subscript'><FontAwesomeIcon icon={faSubscript}/></button>
         </div>,
-        div2: <div key={Math.random()}>
-            <select title='Font Size' onChange={(e)=>{functions.size(e.target.value)}}>
-                {fontSizes.map(size=>{
-                    return <option
-                        key={Math.random()} 
-                        style={{fontSize: size}}
-                    >{size}</option>
-                })}
-            </select>
-            <button title='Toggle Uppercase/Lowercase' onClick={functions.upper}  
-            >Aa</button>
+        "Text alignment": <div key={Math.random()}>
+            <button onClick={()=>{functions.align("0")}} title='Align Left'><FontAwesomeIcon icon={faAlignLeft}/></button>
+            <button onClick={()=>{functions.align("auto")}} title='Align Center'><FontAwesomeIcon icon={faAlignCenter}/></button>
+            <button onClick={()=>{functions.align("0 0 0 auto")}} title='Align Right'><FontAwesomeIcon icon={faAlignRight}/></button>
         </div>,
-        div3: <div key={Math.random()}>
-            <button onClick={()=>{functions.align("left")}} title='Align Left'><FontAwesomeIcon icon={faAlignLeft}/></button>
-            <button onClick={()=>{functions.align("center")}} title='Align Center'><FontAwesomeIcon icon={faAlignCenter}/></button>
-            <button onClick={()=>{functions.align("right")}} title='Align Right'><FontAwesomeIcon icon={faAlignRight}/></button>
-        </div>,
-        div4: <div className='d-flex-col' key={Math.random()}>
+        "Color": <div className='d-flex-col' key={Math.random()}>
             <label className='color-input' title='Color'>
                 <p style={{marginTop: 3}}>A</p><input type='color' onChange={(e)=>{functions.color(e.target.value)}}/>
             </label>
@@ -64,7 +65,7 @@ export default function Header({options, HeadRef, functions}) {
                 <p>A</p><input type='color' onChange={(e)=>{functions.background(e.target.value)}}/>
             </label>
         </div>,
-        icon: <ul key={Math.random()} >
+        "Emojis list": <ul key={Math.random()} >
             {emojisArray.map(emoji=>{
                 return <button
                     key={Math.random()} 
@@ -73,21 +74,20 @@ export default function Header({options, HeadRef, functions}) {
                 >{emoji}</button>
             })}
         </ul>,
-        clean: <div className='d-flex-col' key={Math.random()}>
+        "Cleaners": <div className='d-flex-col' key={Math.random()}>
             <button title='Delete Text' onClick={functions.new}><FontAwesomeIcon icon={faTrash}/></button>
             <button title='Clean Format' onClick={functions.format}><FontAwesomeIcon icon={faTextSlash}/></button>
         </div>
     }
 
-    let header = options.length !== 0 && options.map(option=>{
-        return <React.Fragment key={Math.random()}>{optionsList[option]} <hr></hr></React.Fragment>
+    let header = Object.keys(options.ToolBar).map(option=>{
+        return options.ToolBar[option] && <React.Fragment key={Math.random()}>{optionsList[option]} <hr></hr></React.Fragment>
     })
 
     const Top = ()=>{
         return <nav>
             <p>TextEditor</p>
-            <button title='Preview' onClick={functions.show}><FontAwesomeIcon icon={faEye}/></button>
-            <button title='Configuration'><FontAwesomeIcon icon={faGear}/></button>
+            <button title='Configuration' onClick={()=>{openPop(true)}}><FontAwesomeIcon icon={faGear}/></button>
             <button title='Close'><FontAwesomeIcon icon={faXmark}/></button>
         </nav>
     }
@@ -95,5 +95,6 @@ export default function Header({options, HeadRef, functions}) {
     return <header className='header' ref={HeadRef}>
         <Top/>
         <section>{header}</section>
+        {popUp && <PopUp options={options} setConfig={setConfig} close={()=>{openPop(false)}}/>}
     </header>
 }

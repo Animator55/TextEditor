@@ -2,25 +2,36 @@ import React from 'react'
 import './assets/App.css'
 import Header from './components/Header'
 
-let defaultOptions = ["history", "div1", "div2", "div3", "div4", "icon", "clean"]
+let defaultOptions = {
+  ToolBar: {
+      "History" : true, 
+      "Text Formating": true, 
+      "Text alignment": true, 
+      "Color": true, 
+      "Emojis list": true, 
+      "Cleaners": true
+  }
+}
 
 
 const regexText = (str, bool)=>{
-  let newStr = ""
-  newStr = str !== undefined ? !bool ? str.replace(/\*(.*?)\*/g, "*<b>$1</b>*") : str.replace(/(\*<b>|<\/b>\*)/g, "*") : ""
-  newStr = !bool ? newStr.replace(/(?<!\<)\/(.*?)(?<!\<)\//g, "/<i>$1</i>/") : newStr.replace(/(\/<i>|<\/i>\/)/g, "/") 
-  newStr = !bool ? newStr.replace(/\_(.*?)\_/g, "_<ins>$1</ins>_") : newStr.replace(/(_<ins>|<\/ins>_)/g, "_")
-  newStr = !bool ? newStr.replace(/\~(.*?)\~/g, "~<s>$1</s>~") : newStr.replace(/(~<s>|<\/s>~)/g, "~")
-  newStr = !bool ? newStr.replace(/\^(.*?)\^/g, "^<sup>$1</sup>^") : newStr.replace(/(^<sup>|<\/sup>^)/g, "^")
-  newStr = !bool ? newStr.replace(/\´(.*?)\´/g, "´<sub>$1</sub>´") : newStr.replace(/(´<sub>|<\/sub>´)/g, "´")
+  let newStr = str
+  newStr = newStr.replace(/(\*|<b>|<\/b>)(.*?)(\*|<b>|<\/b>)/g, "<b>$2</b>")
+  newStr = newStr.replace(/(<i>|<\/i>)/g, "/") 
+  newStr = newStr.replace(/(?<!\<)\/(.*?)(?<!\<)\//g, "<i>$1</i>") 
+  newStr = newStr.replace(/(\_|<ins>|<\/ins>)(.*?)(\_|<ins>|<\/ins>)/g, "<ins>$2</ins>")
+  newStr = newStr.replace(/(\~|<s>|<\/s>)(.*?)(\~|<s>|<\/s>)/g, "<s>$2</s>")
+  newStr = newStr.replace(/(\^|<sup>|<\/sup>)(.*?)(\^|<sup>|<\/sup>)/g, "<sup>$2</sup>")
+  newStr = newStr.replace(/(\´|<sub>|<\/sub>)(.*?)(\´|<sub>|<\/sub>)/g, "<sub>$2</sub>")
   return newStr
 }
 
 export default function App() {
   const [paragraphList, setParagraphList] = React.useState([
-    {id: "0", text: "Text 1", style: {fontSize: "18px", textAlign: "left", backgroundColor: "transparent", color: "black"}},
-    {id: "1", text: "Text 2 ds", style: {fontSize: "20px", textAlign: "left", backgroundColor: "transparent", color: "black"}},
+    {id: "0", text: "Text 1", style: {fontSize: "18px", margin: "0", backgroundColor: "transparent", color: "black"}},
+    {id: "1", text: "Text 2 ds", style: {fontSize: "20px", margin: "0", backgroundColor: "transparent", color: "black"}},
   ])
+  const [config, setConfig] = React.useState(defaultOptions)
   const HeadRef = React.useRef()
   const TextRef = React.useRef()
   
@@ -86,7 +97,7 @@ export default function App() {
       text: TextRef.current.childNodes[index].innerText, 
       style: {
         fontSize: TextRef.current.childNodes[index].style.fontSize,
-        textAlign: TextRef.current.childNodes[index].style.textAlign,
+        margin: TextRef.current.childNodes[index].style.margin,
         backgroundColor: TextRef.current.childNodes[index].style.backgroundColor,
         color: TextRef.current.childNodes[index].style.color,
       }})
@@ -124,7 +135,7 @@ export default function App() {
     let id = Math.random()
     list.splice(index+1, 0, {id: id, text: b, style: {
       fontSize: TextRef.current.childNodes[index].style.fontSize,
-      textAlign: TextRef.current.childNodes[index].style.textAlign,
+      margin: TextRef.current.childNodes[index].style.margin,
       backgroundColor: TextRef.current.childNodes[index].style.backgroundColor,
       color: TextRef.current.childNodes[index].style.color,
     }})
@@ -237,7 +248,7 @@ export default function App() {
     selection.baseNode.data = selection.baseNode.data.slice(0, lower) + Tag + selection.baseNode.data.slice(lower)
     selection.extentNode.data = selection.extentNode.data.slice(0, upper+dif) + Tag + selection.extentNode.data.slice(upper+dif)
 
-    TextRef.current.childNodes[index].innerHTML = regexText(TextRef?.current?.childNodes[index]?.innerText, false)
+    TextRef.current.childNodes[index].innerHTML = regexText(TextRef?.current?.childNodes[index]?.innerHTML, false)
     
     resetCount()
     focus()
@@ -290,14 +301,8 @@ export default function App() {
     addUndo()
     let index = getSelectedIndex(TextRef.selected)
     let text = TextRef?.current?.childNodes[index]?.innerText
-    text = text.replace(/\*(.*?)\*/g, "$1")
-    text = text.replace(/(?<!\<)\/(.*?)(?<!\<)\//g, "$1")
-    text = text.replace(/\_(.*?)\_/g, "$1")
-    text = text.replace(/\~(.*?)\~/g, "$1")
-    text = text.replace(/\^(.*?)\^/g, "$1")
-    text = text.replace(/\´(.*?)\´/g, "$1")
 
-    TextRef.current.childNodes[index].innerText = text
+    TextRef.current.childNodes[index].innerHTML = text
     resetCount()
     focus()
   }
@@ -351,7 +356,7 @@ export default function App() {
     upper: switchUpperCase,
     align: (position)=>{
       let index = getSelectedIndex(TextRef.selected)
-      TextRef.current.childNodes[index].style.textAlign = position
+      TextRef.current.childNodes[index].style.margin = position
       saveParagraph()
     },
     background: (color)=>{
@@ -365,7 +370,7 @@ export default function App() {
       saveParagraph()
     },
     new: ()=>{
-      setParagraphList([{id: "0", text: "", style: {fontSize: "15px", textAlign: "left", backgroundColor: "transparent", color: "black"}}])
+      setParagraphList([{id: "0", text: "", style: {fontSize: "15px", margin: "0", backgroundColor: "transparent", color: "black"}}])
       TextRef.undo = []
       TextRef.redo = []
       toggleHistory(0, true)
@@ -373,18 +378,11 @@ export default function App() {
       resetCount(0)
       focus()
     },
-    show: ()=>{
-      TextRef.current.innerHTML = regexText(TextRef.current.innerHTML, TextRef.current.classList.contains("showing"))
-      TextRef.current.setAttribute("contenteditable", TextRef.current.classList.contains("showing"))
-      TextRef.current.classList.toggle("showing")
-      resetCount()
-      focus()
-    },
     format: cleanFormat,
   }
 
   return <section className='main'>
-    <Header HeadRef={HeadRef} options={defaultOptions} functions={optionsFunctions} />
+    <Header HeadRef={HeadRef} options={config} setConfig={setConfig} functions={optionsFunctions} />
     <div
       className='text-editor'
       data-count={"0 / 1000"}
