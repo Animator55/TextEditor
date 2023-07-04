@@ -17,18 +17,20 @@ export default function PopUp({options, setConfig, close}) {
   return <section className='pop-back' onClick={(e)=>{if(e.target.className==='pop-back') close()}}>
     <div className='pop-up'>
         <h1>Configuration</h1>
-        {Object.keys(defaultOptions).map(key=>{
-            return <section key={Math.random()}>
-                <h1>{key}</h1>
-                <br></br>
-                <ul>{Object.keys(defaultOptions[key]).map(config=>{
-                    return <li key={Math.random()} onClick={()=>{setConfig({...options, [key]: {...options[key], [config]: !options[key][config]}})}}>
-                        <p>{config}</p>
-                        <FontAwesomeIcon icon={options[key][config] ? faSquareCheck : faSquare}/>
-                    </li>
-                })}</ul>
-            </section>
-        })}
+        <div>
+            {Object.keys(defaultOptions).map(key=>{
+                return <section key={Math.random()}>
+                    <h1>{key}</h1>
+                    <br></br>
+                    <ul>{Object.keys(defaultOptions[key]).map(config=>{
+                        return <li key={Math.random()} onClick={()=>{setConfig({...options, [key]: {...options[key], [config]: !options[key][config]}})}}>
+                            <p>{config}</p>
+                            <FontAwesomeIcon icon={options[key][config] ? faSquareCheck : faSquare}/>
+                        </li>
+                    })}</ul>
+                </section>
+            })}
+        </div>
     </div>
   </section>
 }

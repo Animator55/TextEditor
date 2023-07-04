@@ -26,11 +26,15 @@ button, select, label {
     cursor: pointer;
 }
 
+button * {
+    pointer-events: none;
+}
+
 .select::-ms-expand {
     background-color: #6b84ff;
 }
 
-button:hover {
+button:hover, button.active {
     background-color: #ffffff;
     color: #161822;
 }
@@ -242,7 +246,15 @@ input[type="color"]::-webkit-color-swatch {
     color:#ffffff;
 }
 
-.pop-up > section {
+.pop-up > div {
+    overflow-y: scroll;
+}
+
+.pop-up > div::-webkit-scrollbar {
+    width: 0px;
+}
+
+.pop-up > div > section {
     display: flex;
     flex-direction: column;
     padding: 0 2rem;

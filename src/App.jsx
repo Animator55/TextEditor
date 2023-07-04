@@ -28,8 +28,8 @@ const regexText = (str, bool)=>{
 
 export default function App() {
   const [paragraphList, setParagraphList] = React.useState([
-    {id: "0", text: "Text 1", style: {fontSize: "18px", margin: "0", backgroundColor: "transparent", color: "black"}},
-    {id: "1", text: "Text 2 ds", style: {fontSize: "20px", margin: "0", backgroundColor: "transparent", color: "black"}},
+    {id: "0", text: "Text 1", style: {fontFamily: "Arial", fontSize: "18px", margin: "0", backgroundColor: "transparent", color: "black"}},
+    {id: "1", text: "Text 2 ds", style: {fontFamily: "Arial",fontSize: "20px", margin: "0", backgroundColor: "transparent", color: "black"}},
   ])
   const [config, setConfig] = React.useState(defaultOptions)
   const HeadRef = React.useRef()
@@ -96,8 +96,10 @@ export default function App() {
       id: TextRef.selected, 
       text: TextRef.current.childNodes[index].innerText, 
       style: {
+        fontFamily: TextRef.current.childNodes[index].style.fontFamily,
         fontSize: TextRef.current.childNodes[index].style.fontSize,
         margin: TextRef.current.childNodes[index].style.margin,
+        display: TextRef.current.childNodes[index].style.display,
         backgroundColor: TextRef.current.childNodes[index].style.backgroundColor,
         color: TextRef.current.childNodes[index].style.color,
       }})
@@ -134,8 +136,10 @@ export default function App() {
     //create new line
     let id = Math.random()
     list.splice(index+1, 0, {id: id, text: b, style: {
+      fontFamily: TextRef.current.childNodes[index].style.fontFamily,
       fontSize: TextRef.current.childNodes[index].style.fontSize,
       margin: TextRef.current.childNodes[index].style.margin,
+      display: TextRef.current.childNodes[index].style.display,
       backgroundColor: TextRef.current.childNodes[index].style.backgroundColor,
       color: TextRef.current.childNodes[index].style.color,
     }})
@@ -179,7 +183,9 @@ export default function App() {
     saveParagraph()
     TextRef.selected = id
     let index = getSelectedIndex(id)
-    HeadRef.current.lastChild.children[4].firstChild.value = TextRef.current.childNodes[index].style.fontSize
+    HeadRef.current.lastChild.children[2].firstChild.value = TextRef.current.childNodes[index].style.fontFamily
+    HeadRef.current.lastChild.children[2].children[1].value = TextRef.current.childNodes[index].style.fontSize
+    HeadRef.current.lastChild.children[4].children[3].classList.toggle("active", TextRef.current.childNodes[index].style.display === "list-item")
   }
 
 
@@ -253,6 +259,24 @@ export default function App() {
     resetCount()
     focus()
   }
+  // const addComplexTags = (Tag) => {
+  //   let selection = setSelection()
+  //   if(selection.baseNode === selection.extentNode && selection.extentOffset === selection.baseOffset) return
+  //   let index = getSelectedIndex(TextRef.selected)
+  //   addUndo()
+
+  //   let [lower, upper] = [selection.baseOffset, selection.extentOffset]
+
+  //   let dif = lower < upper ? 1 : 0
+
+  //   selection.baseNode.data = selection.baseNode.data.slice(0, lower) + Tag + selection.baseNode.data.slice(lower)
+  //   selection.extentNode.data = selection.extentNode.data.slice(0, upper+dif) + Tag + selection.extentNode.data.slice(upper+dif)
+
+  //   TextRef.current.childNodes[index].innerHTML = regexText(TextRef?.current?.childNodes[index]?.innerHTML, false)
+    
+  //   resetCount()
+  //   focus()
+  // }
   const addIcon = (icon) => {
     let selection = setSelection()
     let index = getSelectedIndex(TextRef.selected)
@@ -353,10 +377,20 @@ export default function App() {
       TextRef.current.childNodes[index].style.fontSize = size
       saveParagraph()
     },
+    font: (font)=>{
+      let index = getSelectedIndex(TextRef.selected)
+      TextRef.current.childNodes[index].style.fontFamily = font
+      saveParagraph()
+    },
     upper: switchUpperCase,
     align: (position)=>{
       let index = getSelectedIndex(TextRef.selected)
       TextRef.current.childNodes[index].style.margin = position
+      saveParagraph()
+    },
+    list: (bool)=>{
+      let index = getSelectedIndex(TextRef.selected)
+      TextRef.current.childNodes[index].style.display = bool ? "list-item" : "block"
       saveParagraph()
     },
     background: (color)=>{
@@ -370,7 +404,7 @@ export default function App() {
       saveParagraph()
     },
     new: ()=>{
-      setParagraphList([{id: "0", text: "", style: {fontSize: "15px", margin: "0", backgroundColor: "transparent", color: "black"}}])
+      setParagraphList([{id: "0", text: "", style: {fontFamily: "Arial",fontSize: "15px", margin: "0", backgroundColor: "transparent", color: "black"}}])
       TextRef.undo = []
       TextRef.redo = []
       toggleHistory(0, true)
